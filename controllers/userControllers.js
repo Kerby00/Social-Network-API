@@ -1,10 +1,13 @@
-const { User, Thoughts } = require('../models/user')
+// const User = require('../models/user');
+// const Thoughts = require('../models/thought');
+const {User, Thoughts} = require('../models')
 
 module.exports = {
     async getUsers(req, res) {
         try {
-            const users = await User.find();
+            const users = await User.findAll();
             res.json(users)
+            console.log(res)
         } catch (err) {
             res.status(500).json(err)
         }
@@ -24,6 +27,7 @@ module.exports = {
     },
 
     async createUser(req, res) {
+        console.log(req)
         try {
             const create = await User.create(req.body);
             res.json(create)
