@@ -1,21 +1,22 @@
 // const User = require('../models/user');
 // const Thoughts = require('../models/thought');
-const {User, Thoughts} = require('../models')
+const {User, Thought} = require('../models');
 
 module.exports = {
     async getUsers(req, res) {
         try {
-            const users = await User.findAll();
+            const users = await User.find();
             res.json(users)
             console.log(res)
         } catch (err) {
+            console.log(err)
             res.status(500).json(err)
         }
     },
 
     async getSingleUser(req, res) {
         try {
-            const user = await User.findOne({ _id: req.params.userId });
+            const user = await User.findOne({ _id: req.params.userId }).select('-__v').populate('thoughts').populate('friends');
 
             if (!user) {
                 return res.status(400).json({ message: 'No user found with that ID' })
@@ -44,10 +45,11 @@ module.exports = {
                 return res.status(400).json({ message: 'Id not found, no user deleted' })
             };
 
-            await Thoughts.deleteMany({ _id: { $in: byebye.thoughts } });
+            await Thought.deleteMany({ _id: { $in: byebye.thoughts } });
 
-            res.json(byebye)
+            res.json({message: 'user deleted'})
         } catch (err) {
+            console.log(err)
             res.status(500).json(err)
         }
     },
@@ -68,6 +70,41 @@ module.exports = {
         } catch (err) {
             res.status(500).json(err);
         }
+    },
+    async addFriend(req, res) {
+        try {
+            const friend = await User.findOneAndUpdate(
+                {_id: req.params.userId},
+                {$addToSet: {friends: req.params.friendId}},
+                { new: true}
+            );
+            
+            if(!friend) {
+                res.status(400).json({message: 'couldnt find a user with that ID'})
+            };
+
+            res.json(friend)
+        } catch (err) {
+            res.status(500).json(err)
+        }
+    },
+    async dropFriend(req, res) {
+        try {
+            const friend = await User.findOneAndUpdate(
+                {_id: req.params.userId},
+                {$pull: {friends: req.params.friendId}},
+                { new: true}
+            );
+            
+            if(!friend) {
+                res.status(400).json({message: 'couldnt find a user with that ID'})
+            };
+
+            res.json(friend)
+        } catch (err) {
+            res.status(500).json(err)
+        }
     }
 }
+
 
